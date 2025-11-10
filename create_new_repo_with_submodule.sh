@@ -9,8 +9,12 @@ set -euo pipefail
 SUBMODULE_SSH_URL="git@github.com:Pepe3D/python.modules.utils.git"
 SUBMODULE_HTTPS_URL="https://github.com/Pepe3D/python.modules.utils.git"
 
-REPO_NAME="${1:-$(basename "$PWD") }"
+# repo name: first arg or current folder name. Trim whitespace to avoid accidental spaces
+REPO_NAME_RAW="${1:-$(basename "$PWD") }"
 shift || true
+# trim leading/trailing whitespace
+REPO_NAME="$(printf "%s" "$REPO_NAME_RAW" | sed -e 's/^[[:space:]]\+//' -e 's/[[:space:]]\+$//')"
+
 
 PRIVATE=false
 USE_HTTPS=false
@@ -119,10 +123,19 @@ else
   git remote add origin "$ORIGIN_URL"
 fi
 
-# Ensure branch 'main'
+# Ensure branch 'main' exists locally and is the current branch.
+# After git init the default branch may be 'master'; rename it to 'main' so push works.
 current_branch="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
 if [ -z "$current_branch" ]; then
   git checkout -b main
+else
+  # If the repo was initialized with 'master', rename it to 'main'
+  if [ "$current_branch" = "master" ]; then
+    git branch -M main
+  else
+    # ensure the branch is called 'main' (safe to force if user wants otherwise)
+    git branch -M main || true
+  fi
 fi
 
 if [ "$NO_PUSH" = false ]; then
