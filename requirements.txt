@@ -1,0 +1,6 @@
+python-telegram-bot==21.3
+requests
+aiohttp
+langchain>=0.0.300
+sqlite-utils
+python-dotenv
